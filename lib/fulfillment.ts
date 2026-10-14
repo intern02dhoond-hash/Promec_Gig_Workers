@@ -1,6 +1,7 @@
 import { PromecOrder, orderStore } from "./orderStore";
 import { createDelhiveryShipment } from "./delhivery";
 import { createShiprocketShipment } from "./shiprocket";
+import { createAndIssueRazorpayInvoice } from "./razorpayInvoice";
 import nodemailer from "nodemailer";
 
 export interface FulfillmentResult {
@@ -51,6 +52,15 @@ export async function executeOrderFulfillment(
   let googleSheetSuccess = false;
   let emailSuccess = false;
   let smsSuccess = false;
+
+  // 0. Ensure Official Razorpay Tax Invoice is generated & issued with matching Order ID
+  if (!order.payment.razorpayInvoiceId) {
+    try {
+      await createAndIssueRazorpayInvoice(order, order.payment.razorpayPaymentId);
+    } catch (invErr: any) {
+      console.warn(`[Fulfillment] Razorpay Invoice notice:`, invErr?.message || invErr);
+    }
+  }
 
   // 1. Primary Courier: Delhivery Logistics
   try {

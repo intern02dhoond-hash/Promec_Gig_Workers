@@ -31,8 +31,8 @@ export async function createAndIssueRazorpayInvoice(
       };
     }
 
-    const key_id = (process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "").trim();
-    const key_secret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
+    const key_id = (process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_T8B1ZfO0qV6cTa").trim();
+    const key_secret = (process.env.RAZORPAY_KEY_SECRET || "0KXVl9FKyL7UlWPDw0HJancL").trim();
 
     if (!key_id || !key_secret) {
       console.warn("[Razorpay Invoice] Credentials not configured on server.");
@@ -61,7 +61,6 @@ export async function createAndIssueRazorpayInvoice(
     const invoicePayload: any = {
       type: "invoice",
       description: "PROMEC Aquaforce® 1400 PSI Cordless High-Pressure Washer",
-      payment_id: payId,
       currency: "INR",
       receipt: order.id,
       invoice_number: order.id,

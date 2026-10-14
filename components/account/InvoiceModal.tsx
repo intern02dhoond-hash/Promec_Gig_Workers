@@ -115,7 +115,7 @@ export default function InvoiceModal({ order, isOpen, onClose }: InvoiceModalPro
                 <strong>Date:</strong> {invoiceDate}
               </p>
               <p className="text-xs text-slate-500 font-montserrat">
-                <strong>Order Ref:</strong> {order.id}
+                <strong>Order ID:</strong> {order.id}
               </p>
             </div>
           </div>

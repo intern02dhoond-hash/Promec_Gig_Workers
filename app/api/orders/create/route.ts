@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Sequential Gig Worker Order ID (AQUA-C/INV-1, AQUA-C/INV-2, etc.)
+    // Sequential Gig Worker Order ID (AQUA-R/INV-1, AQUA-R/INV-2, etc.)
     const promecOrderId = await getNextGigWorkerOrderId();
 
     // Initialize Razorpay SDK

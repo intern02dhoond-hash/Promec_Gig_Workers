@@ -36,7 +36,7 @@ export default function WarrantyCardModal({
   });
 
   const certNumber = order.id.startsWith("AQUA-")
-    ? `WAR-${order.id.replace("AQUA-C/INV-", "C-")}`
+    ? `WAR-${order.id.replace("AQUA-R/INV-", "R-").replace("AQUA-C/INV-", "C-")}`
     : `WAR-${order.id.replace("PROMEC-ORD-", "")}`;
 
   return (

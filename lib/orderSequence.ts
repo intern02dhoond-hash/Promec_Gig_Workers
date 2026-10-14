@@ -2,8 +2,8 @@ import fs from "fs";
 import path from "path";
 import { getSupabase } from "./supabase";
 
-const PREFIX = "AQUA-C/INV-";
-// Baseline starts at 1 because AQUA-C/INV-1 was already issued in Razorpay (order_TngOjjfbBHei28)
+const PREFIX = "AQUA-R/INV-";
+// Baseline starts at 1 because AQUA-R/INV-1 was already issued in Razorpay (order_TngOjjfbBHei28)
 const BASELINE_MAX = 1;
 
 interface OrderSequenceState {
@@ -51,7 +51,7 @@ function persistLocalSequenceState(state: OrderSequenceState): void {
 
 /**
  * Scans Supabase promec_orders and local orders.json to discover the highest
- * existing sequential number matching AQUA-C/INV-<N>.
+ * existing sequential number matching AQUA-R/INV-<N>.
  */
 export async function getHighestGigWorkerOrderNumber(): Promise<number> {
   const discoveredNumbers: number[] = [BASELINE_MAX];
@@ -74,7 +74,7 @@ export async function getHighestGigWorkerOrderNumber(): Promise<number> {
       if (!error && Array.isArray(data)) {
         for (const row of data) {
           if (typeof row?.id === "string") {
-            const match = row.id.match(/^AQUA-C\/INV-(\d+)$/i);
+            const match = row.id.match(/^AQUA-R\/INV-(\d+)$/i);
             if (match) {
               const num = parseInt(match[1], 10);
               if (!isNaN(num)) discoveredNumbers.push(num);
@@ -96,7 +96,7 @@ export async function getHighestGigWorkerOrderNumber(): Promise<number> {
       if (Array.isArray(list)) {
         for (const ord of list) {
           if (typeof ord?.id === "string") {
-            const match = ord.id.match(/^AQUA-C\/INV-(\d+)$/i);
+            const match = ord.id.match(/^AQUA-R\/INV-(\d+)$/i);
             if (match) {
               const num = parseInt(match[1], 10);
               if (!isNaN(num)) discoveredNumbers.push(num);
@@ -116,8 +116,8 @@ export async function getHighestGigWorkerOrderNumber(): Promise<number> {
 let sequenceMutex: Promise<any> = Promise.resolve();
 
 /**
- * Computes and reserves the next sequential Gig Workers Order ID (e.g. AQUA-C/INV-2, AQUA-C/INV-3, etc.)
- * Strictly follows the series AQUA-C/INV-1, 2, 3, 4, 5...
+ * Computes and reserves the next sequential Gig Workers Order ID (e.g. AQUA-R/INV-2, AQUA-R/INV-3, etc.)
+ * Strictly follows the series AQUA-R/INV-1, 2, 3, 4, 5...
  */
 export async function getNextGigWorkerOrderId(): Promise<string> {
   return new Promise<string>((resolve, reject) => {

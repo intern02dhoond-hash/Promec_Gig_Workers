@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 export interface PromecOrder {
-  id: string; // e.g. "AQUA-C/INV-2" (Gig Workers sequential series) or legacy "PROMEC-ORD-..."
+  id: string; // e.g. "AQUA-R/INV-2" (Gig Workers sequential series) or legacy "PROMEC-ORD-..."
   createdAt: string;
   updatedAt: string;
   idempotencyKey?: string;
