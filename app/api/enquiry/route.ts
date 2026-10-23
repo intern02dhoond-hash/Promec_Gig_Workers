@@ -113,9 +113,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Automated WhatsApp Message via AiSensy
-    const aisensyApiKey =
-      process.env.AISENSY_API_KEY ||
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhOTgxMTQzNjYwZTk1MGU3ZDJlYTM0MyIsIm5hbWUiOiJQcm9tZWMgSW5kaWEiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNmE5ODExNDM2NjBlOTUwZTdkMmVhMzNlIiwiYWN0aXZlUGxhbiI6IkJBU0lDX01PTlRITFkiLCJpYXQiOjE3ODg3NTYzNDV9._N2prpFIwKpOsYjSUsSoOtu79upNaa72J0bRtYxgQYQ";
+    const aisensyApiKey = process.env.AISENSY_API_KEY || "";
     const aisensyCampaign =
       process.env.AISENSY_INQUIRY_CAMPAIGN_NAME || "inquiry_received_template";
 

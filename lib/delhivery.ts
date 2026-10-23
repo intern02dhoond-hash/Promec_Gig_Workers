@@ -1,5 +1,5 @@
 export const DELHIVERY_API_TOKEN = (
-  process.env.DELHIVERY_API_TOKEN || "896739f8bbc9a0d080336cd9504af9fd22c324a3"
+  process.env.DELHIVERY_API_TOKEN || ""
 ).trim();
 
 export const DELHIVERY_PICKUP_LOCATION = (

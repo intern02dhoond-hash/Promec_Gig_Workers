@@ -6,8 +6,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Loader2,
-  Copy,
-  CheckCheck,
   ShieldCheck,
   Truck,
   PhoneCall,
@@ -47,7 +45,6 @@ export default function InquiryFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [copiedLink, setCopiedLink] = useState(false);
 
   const isValidEmail = (emailStr: string) => {
     if (!emailStr.trim()) return true; // Optional
@@ -85,14 +82,6 @@ export default function InquiryFormPage() {
       customerType: prev.customerType === type ? "" : type,
     }));
     if (errorMsg) setErrorMsg("");
-  };
-
-  const handleCopyLink = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2200);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,26 +169,6 @@ export default function InquiryFormPage() {
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Share / Copy Link Button */}
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 active:bg-white/15 text-white/90 transition-all font-montserrat cursor-pointer shadow-xs"
-              title="Copy shareable link for this form"
-            >
-              {copiedLink ? (
-                <>
-                  <CheckCheck size={13} className="text-emerald-400" />
-                  <span className="text-emerald-400">Link Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={13} className="text-white/70" />
-                  <span>Share Form</span>
-                </>
-              )}
-            </button>
-
             <Link
               href="/"
               className="inline-flex items-center gap-1 text-xs font-semibold text-white/70 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/5 transition-all font-open-sans"
