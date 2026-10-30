@@ -61,13 +61,16 @@ export default function WhatsInTheBox() {
       }
     };
 
-    attemptPlay();
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !userPaused && video.paused) {
-            attemptPlay();
+          if (entry.isIntersecting && !userPaused) {
+            if (video.paused) {
+              attemptPlay();
+            }
+          } else if (!entry.isIntersecting && !video.paused) {
+            video.pause();
+            setIsPlaying(false);
           }
         });
       },
@@ -113,9 +116,8 @@ export default function WhatsInTheBox() {
             >
               <video
                 ref={videoRef}
-                autoPlay
                 playsInline
-                preload="auto"
+                preload="none"
                 loop
                 muted
                 onPlay={() => setIsPlaying(true)}

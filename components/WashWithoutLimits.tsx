@@ -39,8 +39,6 @@ export default function WashWithoutLimits() {
               src="/aquaforceforgigworkers/images/Remainig%20images/left.webp"
               alt="Aquaforce 1400 cordless vehicle detailing"
               fill
-              priority
-              quality={100}
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover object-center"
             />
@@ -52,8 +50,6 @@ export default function WashWithoutLimits() {
               src="/aquaforceforgigworkers/images/Remainig%20images/right.webp"
               alt="Aquaforce 1400 outdoor car detailing"
               fill
-              priority
-              quality={100}
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover object-center"
             />
@@ -101,8 +97,6 @@ export default function WashWithoutLimits() {
             src="/aquaforceforgigworkers/images/Remainig%20images/left.webp"
             alt="Aquaforce 1400 cordless vehicle detailing"
             fill
-            priority
-            quality={100}
             sizes="(max-width: 1024px) 50vw, 35vw"
             className="object-cover object-center"
           />
@@ -167,8 +161,6 @@ export default function WashWithoutLimits() {
             src="/aquaforceforgigworkers/images/Remainig%20images/right.webp"
             alt="Aquaforce 1400 outdoor car detailing"
             fill
-            priority
-            quality={100}
             sizes="(max-width: 1024px) 50vw, 35vw"
             className="object-cover object-center"
           />

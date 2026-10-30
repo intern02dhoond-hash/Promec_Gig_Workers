@@ -40,8 +40,6 @@ export default function FourSteps() {
           src="/aquaforceforgigworkers/images/Remainig%20images/mobile%20banner%207.1.webp"
           alt="Aquaforce 4 Steps to Pristine Clean mobile background"
           fill
-          priority
-          quality={100}
           sizes="100vw"
           className="object-cover object-[center_20%]"
         />
@@ -55,8 +53,6 @@ export default function FourSteps() {
           src="/aquaforceforgigworkers/images/Remainig%20images/four-steps-desktop.webp"
           alt="Aquaforce on workshop workbench 4 Steps to Pristine Clean"
           fill
-          priority
-          quality={100}
           sizes="100vw"
           className="object-cover object-[center_30%]"
         />

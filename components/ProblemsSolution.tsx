@@ -311,7 +311,6 @@ export default function ProblemsSolution() {
                     src={problemImageSrc}
                     alt="Traditional Washing Setup with Multiple Machines and Heavy Bags"
                     fill
-                    priority
                     sizes="(max-width: 768px) 100vw, 420px"
                     className="object-cover object-center"
                     onError={() => {
@@ -410,7 +409,6 @@ export default function ProblemsSolution() {
                       src={kitImageSrc}
                       alt="PROMEC AquaForce 1400 PSI Kit All-in-One Setup"
                       fill
-                      priority
                       sizes="(max-width: 768px) 100vw, 420px"
                       className="object-contain object-center"
                       onError={() => {

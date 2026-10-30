@@ -48,7 +48,6 @@ export default function DoorstepProfessionals() {
             src="/aquaforceforgigworkers/images/doorstep-rider-bg-mobile.webp"
             alt="Cleaning professional riding motorcycle with Aquaforce gear"
             fill
-            priority
             sizes="100vw"
             className="object-cover object-center"
           />
@@ -63,7 +62,6 @@ export default function DoorstepProfessionals() {
             src="/aquaforceforgigworkers/images/doorstep-rider-bg.webp"
             alt="Cleaning professional riding motorcycle with Aquaforce gear"
             fill
-            priority
             sizes="100vw"
             className="object-cover object-[60%_center] sm:object-center"
           />

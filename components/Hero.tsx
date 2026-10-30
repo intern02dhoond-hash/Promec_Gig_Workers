@@ -210,8 +210,6 @@ export default function Hero() {
             src="/aquaforceforgigworkers/images/Hero%20section%20Images/2.1.webp"
             alt="Aquaforce 1400 Promotional Launch Offer 26% OFF"
             fill
-            priority
-            quality={100}
             sizes="100vw"
             className="object-cover object-center"
           />
@@ -223,8 +221,6 @@ export default function Hero() {
             src="/aquaforceforgigworkers/images/Hero%20section%20Images/2.webp"
             alt="Aquaforce 1400 Promotional Launch Offer 26% OFF"
             fill
-            priority
-            quality={100}
             sizes="100vw"
             className="object-cover object-center"
           />
@@ -367,8 +363,6 @@ export default function Hero() {
             src="/aquaforceforgigworkers/images/Hero%20section%20Images/3.1.webp"
             alt="Aquaforce 1400 Cordless Portable Cleaning System"
             fill
-            priority
-            quality={100}
             sizes="100vw"
             className="object-cover object-[65%_center]"
           />
@@ -380,8 +374,6 @@ export default function Hero() {
             src="/aquaforceforgigworkers/images/Hero%20section%20Images/3.webp"
             alt="Aquaforce 1400 Clean More Earn More"
             fill
-            priority
-            quality={100}
             sizes="100vw"
             className="object-cover object-center"
           />
@@ -508,8 +500,6 @@ export default function Hero() {
             src="/aquaforceforgigworkers/images/Hero%20section%20Images/4.1.webp"
             alt="Aquaforce 1400 Stay Home Earn Money"
             fill
-            priority
-            quality={100}
             sizes="100vw"
             className="object-cover object-center"
           />
@@ -521,8 +511,6 @@ export default function Hero() {
             src="/aquaforceforgigworkers/images/Hero%20section%20Images/4.webp"
             alt="Aquaforce 1400 Stay Home Earn Money"
             fill
-            priority
-            quality={100}
             sizes="100vw"
             className="object-cover object-center"
           />

@@ -15,7 +15,6 @@ export default function PromoBanner() {
           src="/aquaforceforgigworkers/images/banner-desktop-1.webp"
           alt="Aquaforce 1400 promotional launch offer"
           fill
-          priority
           sizes="100vw"
           className="object-cover object-center"
         />

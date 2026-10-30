@@ -209,6 +209,7 @@ export default function PerformanceVideoPlayer({
                 autoPlay
                 muted={isMuted}
                 playsInline
+                preload="metadata"
                 onEnded={handleVideoEnded}
                 onClick={togglePlay}
                 className="w-full h-full object-cover cursor-pointer block"

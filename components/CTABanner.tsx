@@ -16,7 +16,6 @@ export default function CTABanner() {
           src="/aquaforceforgigworkers/images/cta-banner-bg-mobile.webp"
           alt="Aquaforce Delivery Rider on Road"
           fill
-          priority
           sizes="100vw"
           className="object-cover object-bottom"
         />
@@ -30,7 +29,6 @@ export default function CTABanner() {
           src="/aquaforceforgigworkers/images/cta-banner-bg.webp"
           alt="Aquaforce Delivery Rider on Road"
           fill
-          priority
           sizes="100vw"
           className="object-cover object-[62%_center] lg:object-center"
         />

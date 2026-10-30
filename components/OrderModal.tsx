@@ -6382,8 +6382,6 @@ interface CheckoutSubmitOptions {
                       src={images[activeImageIndex]}
                       alt={`${PRODUCT_DATA.name} ${currentColor.name} view ${activeImageIndex + 1}`}
                       fill
-                      priority
-                      quality={100}
                       sizes="(max-width: 768px) 100vw, 500px"
                       className={`object-contain p-2 transition-all duration-300 ${
                         !currentColor.inStock ? "opacity-75 grayscale-[20%]" : ""
