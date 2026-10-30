@@ -454,11 +454,11 @@ const DEFAULT_EMI_BANKS: EmiBankItem[] = [
     name: "HSBC",
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/hsb.png",
     type: "credit",
-    isNoCost: false,
+    isNoCost: true,
     hasOffer: true,
     offerText: "5% Cashback (Up to ₹1,000)",
-    minAmount: 5000,
-    startingEmi: 5488,
+    minAmount: 4000,
+    startingEmi: 3749,
     plans: [],
   },
   {
@@ -7066,7 +7066,7 @@ interface CheckoutSubmitOptions {
                   Save more with payment offers
                 </h3>
                 <span className="shrink-0 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  {REAL_RAZORPAY_CASHBACK_OFFERS.length} Offers Available
+                  {liveRazorpayOffers.length > 0 ? liveRazorpayOffers.length : 19} Offers Available
                 </span>
               </div>
               <button

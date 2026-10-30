@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 // @ts-ignore
 import icons from "payments-icons-library";
 import {
-  hasPromecPayLaterOffers,
-  PROMEC_PAYLATER_OFFERS_METADATA,
+  fetchLiveRazorpayOffers,
   PromecOfferMeta,
-  REAL_RAZORPAY_CASHBACK_OFFERS,
-  calculateRealCardOffer,
+  RealPaymentOfferMeta,
+  BANK_NAMES_MAP,
+  BANK_LOGOS_MAP,
 } from "@/lib/razorpayOffers";
 
 // Bank code to Payments Icons Library alias mapping
@@ -66,33 +66,6 @@ const BANK_ALIASES: Record<string, string> = {
   VIJB: "vijaya",
   DBSS: "dbs",
   BAJAJ: "bajaj",
-};
-
-const BANK_NAMES: Record<string, string> = {
-  UTIB: "AXIS Bank",
-  HDFC: "HDFC Bank",
-  HDFC_DC: "HDFC Bank Debit Card",
-  ICIC: "ICICI Bank",
-  ICIC_DC: "ICICI Bank Debit Card",
-  SBIN: "State Bank of India",
-  SBIN_DC: "State Bank of India Debit Card",
-  KKBK: "Kotak Mahindra Bank",
-  BARB: "Bank of Baroda",
-  BARB_R: "Bank of Baroda",
-  AMEX: "American Express Bank",
-  YESB: "Yes Bank",
-  IDFB: "IDFC First Bank",
-  INDB: "Indus Ind Bank",
-  RATN: "RBL Bank",
-  FDRL: "Federal Bank",
-  HSBC: "HSBC",
-  SCBL: "Standard Chartered Bank",
-  AUBL: "AU Small Finance Bank",
-  onecard: "One Card",
-  IBKL: "IDBI Bank",
-  CNRB: "Canara Bank",
-  DBSS: "DBS Bank",
-  BAJAJ: "Bajaj Finserv",
 };
 
 export interface EmiPlan {
@@ -160,8 +133,6 @@ export interface NetbankingBankItem {
   isPopular: boolean;
 }
 
-// Master EMI banks list (19 Credit Cards + 4 Debit Cards + 1 Bajaj Finserv)
-// Matches user reference images media_1790418313960.png and media_1790418307016.png
 interface MasterEmiConfig {
   id: string;
   code: string;
@@ -175,7 +146,6 @@ interface MasterEmiConfig {
 }
 
 const MASTER_EMI_BANKS: MasterEmiConfig[] = [
-  // 14 Real Credit Cards Enabled in Razorpay
   {
     id: "axis",
     code: "UTIB",
@@ -184,7 +154,7 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     isNoCost: true,
     hasOffer: true,
     offerText: "5% Cashback (Up to ₹750)",
-    minAmount: 5000,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/axis.png",
   },
   {
@@ -193,17 +163,17 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     name: "ICICI Bank",
     type: "credit",
     isNoCost: true,
-    hasOffer: false,
-    offerText: "",
-    minAmount: 1500,
+    hasOffer: true,
+    offerText: "1% Cashback",
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/icici.png",
   },
   {
     id: "amex",
     code: "AMEX",
-    name: "American Express Bank",
+    name: "American Express",
     type: "credit",
-    isNoCost: true,
+    isNoCost: false,
     hasOffer: false,
     offerText: "",
     minAmount: 5000,
@@ -217,7 +187,7 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     isNoCost: true,
     hasOffer: true,
     offerText: "5% Cashback (Up to ₹1,500)",
-    minAmount: 5000,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/yes.png",
   },
   {
@@ -225,10 +195,10 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     code: "HSBC",
     name: "HSBC",
     type: "credit",
-    isNoCost: false,
+    isNoCost: true,
     hasOffer: true,
     offerText: "5% Cashback (Up to ₹1,000)",
-    minAmount: 5000,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/hsb.png",
   },
   {
@@ -239,18 +209,18 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     isNoCost: true,
     hasOffer: false,
     offerText: "",
-    minAmount: 2500,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/scb.png",
   },
   {
     id: "indb",
     code: "INDB",
-    name: "Indus Ind Bank",
+    name: "IndusInd Bank",
     type: "credit",
     isNoCost: true,
     hasOffer: false,
     offerText: "",
-    minAmount: 2000,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/indusind.png",
   },
   {
@@ -261,7 +231,7 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     isNoCost: true,
     hasOffer: false,
     offerText: "",
-    minAmount: 2500,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/bobc.png",
   },
   {
@@ -272,7 +242,7 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     isNoCost: true,
     hasOffer: false,
     offerText: "",
-    minAmount: 2500,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/federal.png",
   },
   {
@@ -294,18 +264,18 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     isNoCost: true,
     hasOffer: false,
     offerText: "",
-    minAmount: 2000,
+    minAmount: 3000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/aus.png",
   },
   {
     id: "idfb",
     code: "IDFB",
-    name: "IDFC First Bank",
+    name: "IDFC FIRST Bank",
     type: "credit",
     isNoCost: true,
     hasOffer: true,
     offerText: "3.5% Cashback (Up to ₹3,000)",
-    minAmount: 5000,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/idfc.png",
   },
   {
@@ -316,7 +286,7 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     isNoCost: true,
     hasOffer: false,
     offerText: "",
-    minAmount: 2500,
+    minAmount: 4000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/paylater/64/kotak.png",
   },
   {
@@ -324,14 +294,23 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     code: "RATN",
     name: "RBL Bank",
     type: "credit",
-    isNoCost: true,
+    isNoCost: false,
     hasOffer: false,
     offerText: "",
     minAmount: 2000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/rbl.png",
   },
-
-  // 1 Real Debit Card Enabled in Razorpay (HDFC Bank Debit Card)
+  {
+    id: "sbin",
+    code: "SBIN",
+    name: "State Bank of India",
+    type: "credit",
+    isNoCost: false,
+    hasOffer: true,
+    offerText: "5% Reward Points",
+    minAmount: 2500,
+    logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/sbi.png",
+  },
   {
     id: "hdfc_dc",
     code: "HDFC_DC",
@@ -340,12 +319,13 @@ const MASTER_EMI_BANKS: MasterEmiConfig[] = [
     isNoCost: true,
     hasOffer: false,
     offerText: "",
-    minAmount: 3000,
+    minAmount: 6000,
     logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/hdfc.png",
   },
 ];
 
 function getBankLogoUrl(code: string): string {
+  if (BANK_LOGOS_MAP[code]) return BANK_LOGOS_MAP[code];
   const alias = BANK_ALIASES[code] || code.toLowerCase();
   try {
     const iconObj = icons && typeof icons.getIcon === "function" ? icons.getIcon(alias, "md") : null;
@@ -375,7 +355,7 @@ function calculateEmi(principal: number, annualRatePercent: number, months: numb
 function generateDynamicPlans(
   bankCode: string,
   totalAmount: number,
-  matchingOffer?: RazorpayOfferDisplayItem | PromecOfferMeta | null
+  matchingOffer?: PromecOfferMeta | null
 ): EmiPlan[] {
   const isDebit = bankCode.endsWith("_DC");
   const isHdfc = bankCode.startsWith("HDFC");
@@ -385,7 +365,7 @@ function generateDynamicPlans(
   const discount = isHdfc && isDebit ? Math.min(Math.round(totalAmount * 0.1), 2500) : 0;
   const principal = totalAmount - discount;
 
-  const tenures = isBajaj
+  const baseTenures = isBajaj
     ? [3, 6]
     : isHdfc && !isDebit
     ? [3, 6, 9, 12, 18, 24, 36, 48]
@@ -396,22 +376,18 @@ function generateDynamicPlans(
     : [3, 6, 9, 12, 18, 24];
 
   const offerTenures = new Set<number>(matchingOffer?.tenures || []);
+  const allTenures = Array.from(new Set([...Array.from(offerTenures), ...baseTenures])).sort((a, b) => a - b);
+
   const isOfferEligibleForCart = Boolean(
     matchingOffer &&
     (!matchingOffer.minAmount || totalAmount >= matchingOffer.minAmount) &&
     (!matchingOffer.maxAmount || totalAmount <= matchingOffer.maxAmount)
   );
 
-  const hasNoCostBenefit = Boolean(
-    (matchingOffer && "benefits" in matchingOffer && (matchingOffer as any).benefits?.includes("NO_COST_EMI")) ||
-    (matchingOffer && "benefitType" in matchingOffer && (matchingOffer as any).benefitType === "NO_COST_EMI")
-  );
-
-  return tenures.map((months) => {
+  return allTenures.map((months) => {
     const isPlanNoCost = Boolean(
       isOfferEligibleForCart &&
-      offerTenures.has(months) &&
-      hasNoCostBenefit
+      offerTenures.has(months)
     );
 
     if (isPlanNoCost) {
@@ -446,62 +422,28 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const priceParam = searchParams.get("price");
-    const totalPrice = priceParam ? Math.max(1, parseInt(priceParam, 10)) : 37999;
+    const totalPrice = priceParam ? Math.max(1, parseInt(priceParam, 10)) : 44991;
 
     const key_id = (
       process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || ""
     ).trim();
-    const key_secret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
 
-    let rawMethods: any = {};
-    let rawOffers: any[] = [];
+    // 1. Fetch live methods & live offers concurrently
+    const [methodsRes, offersData] = await Promise.all([
+      key_id
+        ? fetch(`https://api.razorpay.com/v1/methods?key_id=${key_id}`, {
+            next: { revalidate: 300 },
+          })
+            .then((r) => (r.ok ? r.json() : {}))
+            .catch(() => ({}))
+        : Promise.resolve({}),
+      fetchLiveRazorpayOffers(),
+    ]);
 
-    if (key_id) {
-      try {
-        const rzpRes = await fetch(`https://api.razorpay.com/v1/methods?key_id=${key_id}`, {
-          next: { revalidate: 300 }, // 5 min Next.js caching
-        });
-        if (rzpRes.ok) {
-          rawMethods = await rzpRes.json();
-        }
-      } catch (e) {
-        console.warn("[Razorpay Methods API] Failed to fetch upstream methods, using fallback", e);
-      }
-    }
+    const rawMethods: any = methodsRes || {};
+    const { noCostOffers, cashbackOffers } = offersData;
 
-    // Fetch live active offers directly from Razorpay Offers API
-    if (key_id && key_secret) {
-      try {
-        const authHeader = "Basic " + Buffer.from(`${key_id}:${key_secret}`).toString("base64");
-        const offersRes = await fetch("https://api.razorpay.com/v1/offers?count=100", {
-          headers: { Authorization: authHeader },
-          next: { revalidate: 300 },
-        });
-        if (offersRes.ok) {
-          const offersData = await offersRes.json();
-          if (Array.isArray(offersData.items)) {
-            rawOffers = offersData.items.filter((o: any) => o.status === "ACTIVE");
-          }
-        }
-      } catch (offersErr) {
-        console.warn("[Razorpay Methods API] Failed to fetch live offers from Razorpay:", offersErr);
-      }
-    }
-
-    // Filter No Cost EMI offers from rawOffers (or use metadata fallback)
-    const rawNoCostOffers = rawOffers.filter(
-      (o: any) =>
-        o.name?.toLowerCase().includes("promec") ||
-        o.display_name?.toLowerCase().includes("promec") ||
-        (Array.isArray(o.benefits_types) && o.benefits_types.includes("NO_COST_EMI"))
-    );
-
-    // Filter Live Cashback offers from rawOffers
-    const rawCashbackOffers = rawOffers.filter(
-      (o: any) => Array.isArray(o.benefits_types) && o.benefits_types.includes("CASHBACK")
-    );
-
-    // 1. Process Netbanking Banks
+    // 2. Process Netbanking Banks
     const POPULAR_CANDIDATES = [
       "HDFC", "ICIC", "SBIN", "UTIB", "KKBK", 
       "BARB_R", "BARB", "INDB", "IDFB", "YESB", 
@@ -545,7 +487,6 @@ export async function GET(req: Request) {
     );
 
     if (netbankingList.length === 0) {
-      // Default fallback netbanking list
       netbankingList = [
         { code: "SBIN", name: "State Bank of India", shortName: "SBI", logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/sbi.png", isPopular: true },
         { code: "HDFC", name: "HDFC Bank", shortName: "HDFC Bank", logo: "https://cashfreelogo.cashfree.com/assets_images/pg/nb/64/hdfc.png", isPopular: true },
@@ -565,10 +506,9 @@ export async function GET(req: Request) {
       });
     }
 
-    // 2. Process Offers: Strictly return ONLY the 5 real payment offers active on the merchant's Razorpay account
-    // (Matches the exact "Save more with payment offers" widget on the user's other website)
-    const displayOffers: RazorpayOfferDisplayItem[] = REAL_RAZORPAY_CASHBACK_OFFERS.map((meta) => {
-      const liveMatch = rawOffers.find((ro: any) => ro.id === meta.id);
+    // 3. Process Live Offers:
+    // Create offer display items for both verified active Cashback offers AND No Cost EMI offers
+    const cashbackDisplayOffers: RazorpayOfferDisplayItem[] = cashbackOffers.map((meta) => {
       const isEligible = totalPrice >= meta.minOrderRupees;
       const rawCashback = Math.round((totalPrice * meta.cashbackPercent) / 100);
       const effectiveCashback = isEligible ? Math.min(rawCashback, meta.maxBenefitRupees) : 0;
@@ -576,18 +516,18 @@ export async function GET(req: Request) {
 
       return {
         id: meta.id,
-        name: liveMatch?.name || meta.title,
+        name: meta.title,
         displayName: meta.title,
         bankCode: meta.bankCode,
         bankName: meta.bankName,
-        bankLogo: meta.logo,
+        bankLogo: meta.logo || getBankLogoUrl(meta.bankCode),
         cardType: "credit",
         tenures: [3, 6, 9, 12, 18, 24],
         minAmount: meta.minOrderRupees,
         maxAmount: 1000000,
         monthlyAmountForCurrentPrice,
         interestRate: 15,
-        status: liveMatch?.status || "ACTIVE",
+        status: "ACTIVE",
         description: meta.description,
         tnc: meta.tnc,
         benefits: ["CASHBACK"],
@@ -601,30 +541,101 @@ export async function GET(req: Request) {
       };
     });
 
-    // 3. Process EMI Banks — only show banks actually enabled on Razorpay or covered by Promec India PayLater offers
+    const noCostDisplayOffers: RazorpayOfferDisplayItem[] = noCostOffers.map((nco) => {
+      const maxTenure = nco.tenures[nco.tenures.length - 1] || 6;
+      const monthlyAmountForCurrentPrice = Math.round(totalPrice / maxTenure);
+      const interestSavedAmount = Math.round(totalPrice * 0.15 * (maxTenure / 12));
+
+      return {
+        id: nco.id,
+        name: nco.name,
+        displayName: `0% Interest No Cost EMI - ${nco.bankName}`,
+        bankCode: nco.bankCode,
+        bankName: nco.bankName,
+        bankLogo: getBankLogoUrl(nco.bankCode),
+        cardType: nco.cardType,
+        tenures: nco.tenures,
+        minAmount: nco.minAmount,
+        maxAmount: nco.maxAmount,
+        monthlyAmountForCurrentPrice,
+        interestRate: 0,
+        status: "ACTIVE",
+        description: nco.description || `Buy AquaForce on 0% Interest No Cost EMI on ${nco.bankName}.`,
+        tnc: nco.tnc,
+        benefits: ["NO_COST_EMI"],
+        cashbackAmount: 0,
+        cashbackText: `No Cost EMI (${nco.tenures.join(", ")}M)`,
+        interestSavedAmount,
+        totalSavingsAmount: interestSavedAmount,
+        badgeText: "NO COST EMI",
+        highlightText: `0% Interest No Cost EMI (${nco.tenures.join(", ")} Months)`,
+      };
+    });
+
+    const displayOffers: RazorpayOfferDisplayItem[] = [
+      ...cashbackDisplayOffers,
+      ...noCostDisplayOffers,
+    ];
+
+    // 4. Process Live EMI Banks
     const emiPlans = rawMethods.emi_plans || {};
     const hasLiveEmiData = Object.keys(emiPlans).length > 0;
-    const offerBankCodes = new Set(displayOffers.map((o) => o.bankCode).filter(Boolean));
 
+    // Start with master list, and ensure ANY bank with an active live offer is included
+    const bankMap = new Map<string, MasterEmiConfig>();
+    MASTER_EMI_BANKS.forEach((b) => bankMap.set(b.code, { ...b }));
+
+    // Inject any new banks from live No Cost offers
+    noCostOffers.forEach((nco) => {
+      const existing = bankMap.get(nco.bankCode);
+      if (existing) {
+        existing.isNoCost = true;
+        existing.minAmount = nco.minAmount;
+      } else {
+        bankMap.set(nco.bankCode, {
+          id: nco.bankCode.toLowerCase(),
+          code: nco.bankCode,
+          name: nco.bankName,
+          type: nco.cardType,
+          isNoCost: true,
+          hasOffer: false,
+          offerText: "0% Interest No Cost EMI",
+          minAmount: nco.minAmount,
+          logo: getBankLogoUrl(nco.bankCode),
+        });
+      }
+    });
+
+    const combinedBankConfigs = Array.from(bankMap.values());
+
+    // Eligible banks: check emi_plans, but always retain banks that have active No Cost EMI offers in Razorpay
+    const noCostBankCodes = new Set(noCostOffers.map((o) => o.bankCode));
     const eligibleBanks = hasLiveEmiData
-      ? MASTER_EMI_BANKS.filter((cfg) => Boolean(emiPlans[cfg.code]))
-      : MASTER_EMI_BANKS;
+      ? combinedBankConfigs.filter((cfg) => Boolean(emiPlans[cfg.code]) || noCostBankCodes.has(cfg.code))
+      : combinedBankConfigs;
 
     const emiBanks: EmiBankItem[] = eligibleBanks.map((cfg) => {
       const livePlanObj = emiPlans[cfg.code];
-      const matchingCashbackOffer = displayOffers.find((doff) => {
+
+      // Match live cashback offer
+      const matchingCashbackOffer = cashbackOffers.find((doff) => {
         if (cfg.type === "debit") {
-          return doff.cardType === "debit" && (cfg.code === doff.bankCode || cfg.code.startsWith(doff.bankCode));
+          return cfg.code === doff.bankCode || cfg.code.startsWith(doff.bankCode);
         }
-        return doff.cardType === "credit" && (cfg.code === doff.bankCode || doff.bankCode === cfg.code);
+        return cfg.code === doff.bankCode || doff.bankCode === cfg.code;
       });
 
-      const matchingNoCostMeta = PROMEC_PAYLATER_OFFERS_METADATA.find(
-        (m) =>
-          m.bankCode === cfg.code ||
-          (cfg.type === "debit" && m.cardType === "debit" && (m.bankCode === "HDFC_DC" || cfg.code.includes("HDFC"))) ||
-          (cfg.type === "credit" && m.cardType === "credit" && m.bankCode === cfg.code)
-      );
+      // Match live No Cost EMI offer
+      const matchingNoCostMeta = noCostOffers.find((m) => {
+        if (cfg.code === m.bankCode) return true;
+        if (cfg.type === "debit" && m.cardType === "debit") {
+          return m.bankCode === "HDFC_DC" || cfg.code.includes("HDFC");
+        }
+        if (cfg.type === "credit" && m.cardType === "credit") {
+          return m.bankCode === cfg.code || m.bankName.toLowerCase().includes(cfg.name.toLowerCase());
+        }
+        return false;
+      });
 
       const offerTenures = new Set<number>(matchingNoCostMeta?.tenures || []);
       const isOfferEligibleForCart = Boolean(
@@ -636,54 +647,75 @@ export async function GET(req: Request) {
       let plans: EmiPlan[] = [];
 
       if (livePlanObj && livePlanObj.plans && Object.keys(livePlanObj.plans).length > 0) {
-        plans = Object.entries<any>(livePlanObj.plans)
-          .map(([durationStr, rawRate]) => {
-            const months = parseInt(durationStr, 10);
-            const liveRate = typeof rawRate === "number" ? rawRate : parseFloat(rawRate) || 15;
-            const isPlanNoCost = Boolean(
-              isOfferEligibleForCart &&
-              offerTenures.has(months)
-            );
+        // Collect all durations from livePlanObj AND offerTenures
+        const allMonths = Array.from(new Set([
+          ...Object.keys(livePlanObj.plans).map(d => parseInt(d, 10)),
+          ...Array.from(offerTenures),
+        ])).sort((a, b) => a - b);
 
-            if (isPlanNoCost) {
-              const interestRate = 0;
-              const monthlyAmount = Math.round(totalPrice / months);
-              const totalPayable = totalPrice;
-              return {
-                months,
-                interestRate,
-                monthlyAmount,
-                totalPayable,
-                isNoCost: true,
-                offerId: matchingNoCostMeta?.id,
-                discountAmount: Math.round(totalPrice * (liveRate / 100) * (months / 12)),
-              };
-            } else {
-              const interestRate = liveRate;
-              const monthlyAmount = calculateEmi(totalPrice, interestRate, months);
-              const totalPayable = monthlyAmount * months;
-              return {
-                months,
-                interestRate,
-                monthlyAmount,
-                totalPayable,
-                isNoCost: false,
-              };
-            }
-          })
-          .sort((a, b) => a.months - b.months);
+        plans = allMonths.map((months) => {
+          const rawRate = livePlanObj.plans[String(months)];
+          const liveRate = typeof rawRate === "number" ? rawRate : parseFloat(rawRate) || 15;
+          const isPlanNoCost = Boolean(
+            isOfferEligibleForCart &&
+            offerTenures.has(months)
+          );
+
+          if (isPlanNoCost) {
+            const monthlyAmount = Math.round(totalPrice / months);
+            return {
+              months,
+              interestRate: 0,
+              monthlyAmount,
+              totalPayable: totalPrice,
+              isNoCost: true,
+              offerId: matchingNoCostMeta?.id,
+              discountAmount: Math.round(totalPrice * (liveRate / 100) * (months / 12)),
+            };
+          } else {
+            const interestRate = liveRate;
+            const monthlyAmount = calculateEmi(totalPrice, interestRate, months);
+            return {
+              months,
+              interestRate,
+              monthlyAmount,
+              totalPayable: monthlyAmount * months,
+              isNoCost: false,
+            };
+          }
+        });
       } else {
         plans = generateDynamicPlans(cfg.code, totalPrice, matchingNoCostMeta);
       }
 
       const hasNoCostPlan = plans.some((p) => p.isNoCost);
-      const isNoCost = Boolean(isOfferEligibleForCart && hasNoCostPlan) || cfg.isNoCost;
+      const isNoCost = Boolean(isOfferEligibleForCart && hasNoCostPlan) || Boolean(matchingNoCostMeta);
 
-      // Calculate starting monthly EMI: 6-month plan or lowest monthly amount
+      // Starting monthly EMI: lowest monthly amount among plans (e.g. 12 months or 6 months)
+      const plan12 = plans.find((p) => p.months === 12);
       const plan6 = plans.find((p) => p.months === 6);
-      const startingEmi = plan6 ? plan6.monthlyAmount : plans[0]?.monthlyAmount || Math.round(totalPrice / 6);
+      const startingEmi = plan12
+        ? plan12.monthlyAmount
+        : (plan6 ? plan6.monthlyAmount : plans[0]?.monthlyAmount || Math.round(totalPrice / 12));
 
-      const hasRealCashback = Boolean(matchingCashbackOffer && matchingCashbackOffer.cashbackAmount && matchingCashbackOffer.cashbackAmount > 0);
+      // Calculate cashback benefit
+      let cashbackAmount = 0;
+      let cashbackText = "";
+      if (matchingCashbackOffer && totalPrice >= matchingCashbackOffer.minOrderRupees) {
+        const rawCb = Math.round((totalPrice * matchingCashbackOffer.cashbackPercent) / 100);
+        cashbackAmount = Math.min(rawCb, matchingCashbackOffer.maxBenefitRupees);
+        cashbackText = `${matchingCashbackOffer.cashbackPercent}% Cashback (Up to ₹${matchingCashbackOffer.maxBenefitRupees.toLocaleString("en-IN")})`;
+      }
+
+      const hasOffer = Boolean(cashbackAmount > 0 || isNoCost);
+      const offerText = cashbackText || (isNoCost ? "0% Interest No Cost EMI" : "");
+      const badgeText = isNoCost && cashbackAmount > 0
+        ? "NO COST EMI + CASHBACK"
+        : isNoCost
+        ? "NO COST EMI"
+        : cashbackAmount > 0
+        ? `${matchingCashbackOffer?.cashbackPercent}% CASHBACK`
+        : undefined;
 
       return {
         id: cfg.id,
@@ -692,18 +724,18 @@ export async function GET(req: Request) {
         logo: cfg.logo,
         type: cfg.type,
         isNoCost,
-        hasOffer: hasRealCashback || cfg.hasOffer,
-        offerText: matchingCashbackOffer?.cashbackText || cfg.offerText || "",
-        offerId: matchingCashbackOffer?.id || matchingNoCostMeta?.id,
+        hasOffer,
+        offerText,
+        offerId: matchingNoCostMeta?.id || matchingCashbackOffer?.id,
         minAmount: matchingNoCostMeta?.minAmount || cfg.minAmount,
         startingEmi,
         plans,
-        cashbackAmount: matchingCashbackOffer?.cashbackAmount,
-        cashbackText: matchingCashbackOffer?.cashbackText,
-        cashbackOfferId: matchingCashbackOffer?.cashbackOfferId,
-        interestSavedAmount: 0,
-        totalSavingsAmount: matchingCashbackOffer?.cashbackAmount || 0,
-        badgeText: matchingCashbackOffer?.badgeText || (isNoCost ? "NO COST EMI" : undefined),
+        cashbackAmount: cashbackAmount > 0 ? cashbackAmount : undefined,
+        cashbackText: cashbackText || undefined,
+        cashbackOfferId: matchingCashbackOffer?.id,
+        interestSavedAmount: isNoCost ? Math.round(totalPrice * 0.15 * (6 / 12)) : 0,
+        totalSavingsAmount: cashbackAmount + (isNoCost ? Math.round(totalPrice * 0.15 * (6 / 12)) : 0),
+        badgeText,
       };
     });
 

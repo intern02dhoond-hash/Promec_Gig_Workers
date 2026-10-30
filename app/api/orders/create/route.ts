@@ -3,7 +3,7 @@ import Razorpay from "razorpay";
 import { calculateOrderPricing } from "@/lib/pricing";
 import { orderStore, PromecOrder } from "@/lib/orderStore";
 import { profileStore } from "@/lib/profileStore";
-import { getPromecPayLaterOfferIds } from "@/lib/razorpayOffers";
+import { getLiveRazorpayOfferIds, getPromecPayLaterOfferIds } from "@/lib/razorpayOffers";
 import { getNextGigWorkerOrderId } from "@/lib/orderSequence";
 
 export async function POST(req: Request) {
@@ -102,8 +102,8 @@ export async function POST(req: Request) {
       key_secret,
     });
 
-    // Razorpay No-Cost EMI Subvention Offers ('Promec India PayLater')
-    const configuredOffers = getPromecPayLaterOfferIds();
+    // Razorpay No-Cost EMI Subvention Offers dynamically from live Razorpay account
+    const configuredOffers = await getLiveRazorpayOfferIds();
     const applicableOffers: string[] = [];
 
     // 1. Explicit offers passed in request body

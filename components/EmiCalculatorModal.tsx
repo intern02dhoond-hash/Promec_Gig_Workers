@@ -291,14 +291,14 @@ export default function EmiCalculatorModal({
                     <tr>
                       <td className="py-3 px-3.5 font-bold text-slate-900">9 Months</td>
                       <td className="py-3 px-3.5 font-bold text-slate-900">₹{emi9.toLocaleString("en-IN")}/mo</td>
-                      <td className="py-3 px-3.5 text-slate-500">Bank Standard</td>
-                      <td className="py-3 px-3.5 text-right text-slate-700 font-semibold">Standard</td>
+                      <td className="py-3 px-3.5 text-emerald-600 font-bold">₹0 (100% Discounted)</td>
+                      <td className="py-3 px-3.5 text-right font-bold text-slate-900">₹{price.toLocaleString("en-IN")}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-3.5 font-bold text-slate-900">12 Months</td>
                       <td className="py-3 px-3.5 font-bold text-slate-900">₹{emi12.toLocaleString("en-IN")}/mo</td>
-                      <td className="py-3 px-3.5 text-slate-500">Bank Standard</td>
-                      <td className="py-3 px-3.5 text-right text-slate-700 font-semibold">Standard</td>
+                      <td className="py-3 px-3.5 text-emerald-600 font-bold">₹0 (100% Discounted)</td>
+                      <td className="py-3 px-3.5 text-right font-bold text-slate-900">₹{price.toLocaleString("en-IN")}</td>
                     </tr>
                   </tbody>
                 </table>
