@@ -1327,6 +1327,7 @@ export default function OrderModal({
   } | null>(null);
   const [isGeneratingInlineQr, setIsGeneratingInlineQr] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const activeRzpPaymentIdRef = useRef<string>("");
   const [bankSearchQuery, setBankSearchQuery] = useState("");
   const [selectedEmiFilter, setSelectedEmiFilter] = useState<"all" | "no_cost" | "credit" | "debit" | "bajaj">("all");
   const [expandedTncOfferId, setExpandedTncOfferId] = useState<string | null>(null);
@@ -3064,10 +3065,8 @@ interface CheckoutSubmitOptions {
     }
   };
 
-  const activeRzpPaymentIdRef = useRef<string>("");
-
   const getInlineQrFingerprint = () =>
-    `${quantity}|${selectedVacuumOption}|${currentColor.name}|${paymentMethod}|${formData.phone.replace(/\D/g, "")}|${formData.pincode}|${formData.deliveryAddress.trim()}`;
+    `${quantity}|${selectedVacuumOption}|${currentColor?.name || ""}|${paymentMethod}|${(formData.phone || "").replace(/\D/g, "")}|${formData.pincode || ""}|${(formData.deliveryAddress || "").trim()}`;
 
   const completeVerifiedPayment = async ({
     orderId,

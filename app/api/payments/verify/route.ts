@@ -110,8 +110,11 @@ export async function POST(req: Request) {
           capturedOrAuthPayment = paymentsList.find(
             (p: any) => p.status === "captured" || p.status === "authorized"
           );
-          if (!capturedOrAuthPayment && !failedPayment) {
-            failedPayment = paymentsList.find((p: any) => p.status === "failed") || null;
+          if (!capturedOrAuthPayment && !failedPayment && !targetPaymentId) {
+            const hasPendingAttempt = paymentsList.some((p: any) => p.status === "created");
+            if (!hasPendingAttempt) {
+              failedPayment = paymentsList.find((p: any) => p.status === "failed") || null;
+            }
           }
         }
 
