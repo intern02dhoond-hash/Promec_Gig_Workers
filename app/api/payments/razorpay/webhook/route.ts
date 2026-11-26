@@ -108,28 +108,29 @@ export async function POST(req: Request) {
         const grossAmountInINR = Math.round(order.payment.amountRequiredInPaise / 100);
         const netSettlementInINR = grossAmountInINR - discountInINR;
 
-        await orderStore.updateOrder(order.id, {
-          orderStatus: "confirmed",
-          payment: {
-            ...order.payment,
-            status: "captured",
-            mode: method || order.payment.mode,
-            razorpayPaymentId: payId,
-            amountPaidInPaise: order.payment.amountRequiredInPaise,
-            capturedAt: new Date().toISOString(),
-            ...(discountInINR > 0
-              ? {
-                  subventionDiscountInINR: discountInINR,
-                  netSettlementInINR: netSettlementInINR,
-                  isNoCostEmi: true,
-                }
-              : {}),
-          },
-        });
+        const updatedOrder =
+          (await orderStore.updateOrder(order.id, {
+            orderStatus: "confirmed",
+            payment: {
+              ...order.payment,
+              status: "captured",
+              mode: method || order.payment.mode,
+              razorpayPaymentId: payId,
+              amountPaidInPaise: order.payment.amountRequiredInPaise,
+              capturedAt: new Date().toISOString(),
+              ...(discountInINR > 0
+                ? {
+                    subventionDiscountInINR: discountInINR,
+                    netSettlementInINR: netSettlementInINR,
+                    isNoCostEmi: true,
+                  }
+                : {}),
+            },
+          })) || order;
 
         // Auto-generate official Razorpay GST Tax Invoice
         try {
-          await createAndIssueRazorpayInvoice(order, payId);
+          await createAndIssueRazorpayInvoice(updatedOrder, payId);
         } catch (invoiceErr) {
           console.error("[Razorpay Webhook] Auto invoice generation note:", invoiceErr);
         }

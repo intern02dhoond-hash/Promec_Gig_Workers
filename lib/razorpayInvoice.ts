@@ -139,9 +139,11 @@ export async function createAndIssueRazorpayInvoice(
 
       const finalUrl = invoiceUrl || `https://rzp.io/i/${invoiceId}`;
 
+      // Fetch latest order before patching payment so we never overwrite captured payment fields with stale state
+      const latestOrder = (await orderStore.getOrderById(order.id)) || order;
       await orderStore.updateOrder(order.id, {
         payment: {
-          ...order.payment,
+          ...latestOrder.payment,
           razorpayInvoiceId: invoiceId,
           invoiceUrl: finalUrl,
         },

@@ -86,16 +86,18 @@ export async function POST(req: Request) {
 
       try {
         let capturedOrAuthPayment: any = null;
+        let failedPayment: any = null;
+        const targetPaymentId = razorpayPaymentId || order.payment.razorpayPaymentId;
 
-        if (razorpayPaymentId) {
+        if (targetPaymentId) {
           try {
-            const directP: any = await razorpay.payments.fetch(razorpayPaymentId);
-            if (
-              directP &&
-              directP.order_id === activeRzpOrderId &&
-              (directP.status === "captured" || directP.status === "authorized")
-            ) {
-              capturedOrAuthPayment = directP;
+            const directP: any = await razorpay.payments.fetch(targetPaymentId);
+            if (directP && directP.order_id === activeRzpOrderId) {
+              if (directP.status === "captured" || directP.status === "authorized") {
+                capturedOrAuthPayment = directP;
+              } else if (directP.status === "failed") {
+                failedPayment = directP;
+              }
             }
           } catch (e: any) {
             console.warn("[Payment Verify] Direct payment fetch warning:", e?.message);
@@ -108,6 +110,9 @@ export async function POST(req: Request) {
           capturedOrAuthPayment = paymentsList.find(
             (p: any) => p.status === "captured" || p.status === "authorized"
           );
+          if (!capturedOrAuthPayment && !failedPayment) {
+            failedPayment = paymentsList.find((p: any) => p.status === "failed") || null;
+          }
         }
 
         if (!capturedOrAuthPayment && order.payment.qrCodeId) {
@@ -150,21 +155,22 @@ export async function POST(req: Request) {
           }
 
           if (paymentDetails.status === "captured") {
-            await orderStore.updateOrder(order.id, {
-              orderStatus: "confirmed",
-              payment: {
-                ...order.payment,
-                status: "captured",
-                mode: paymentDetails.method?.toUpperCase() || "UPI",
-                razorpayPaymentId: paymentDetails.id,
-                amountPaidInPaise: order.payment.amountRequiredInPaise,
-                capturedAt: new Date().toISOString(),
-              },
-            });
+            const updatedOrder =
+              (await orderStore.updateOrder(order.id, {
+                orderStatus: "confirmed",
+                payment: {
+                  ...order.payment,
+                  status: "captured",
+                  mode: paymentDetails.method?.toUpperCase() || "UPI",
+                  razorpayPaymentId: paymentDetails.id,
+                  amountPaidInPaise: order.payment.amountRequiredInPaise,
+                  capturedAt: new Date().toISOString(),
+                },
+              })) || order;
 
             // Auto-generate official Razorpay GST Tax Invoice
             try {
-              await createAndIssueRazorpayInvoice(order, paymentDetails.id);
+              await createAndIssueRazorpayInvoice(updatedOrder, paymentDetails.id);
             } catch (invErr) {
               console.warn("[Payment Verify] Razorpay invoice creation note:", invErr);
             }
@@ -178,6 +184,19 @@ export async function POST(req: Request) {
               shipmentId: fulfillmentResult.shipmentId || order.fulfillment.shipmentId || "",
             });
           }
+        }
+
+        if (failedPayment) {
+          return NextResponse.json({
+            success: false,
+            status: "failed",
+            canRetry: true,
+            failedPaymentId: failedPayment.id,
+            error:
+              failedPayment.error_description ||
+              failedPayment.error_reason ||
+              "UPI payment was declined or cancelled. Please try again.",
+          });
         }
       } catch (fetchOrderErr: any) {
         console.warn("[Payment Verify] Polling Razorpay orders error:", fetchOrderErr.message);
@@ -291,29 +310,30 @@ export async function POST(req: Request) {
     const grossAmountInINR = Math.round(order.payment.amountRequiredInPaise / 100);
     const netSettlementInINR = grossAmountInINR - discountInINR;
 
-    await orderStore.updateOrder(order.id, {
-      orderStatus: "confirmed",
-      payment: {
-        ...order.payment,
-        status: "captured",
-        mode: paymentDetails.method?.toUpperCase() || order.payment.mode,
-        razorpayPaymentId,
-        razorpaySignature,
-        amountPaidInPaise: order.payment.amountRequiredInPaise,
-        capturedAt: new Date().toISOString(),
-        ...(discountInINR > 0
-          ? {
-              subventionDiscountInINR: discountInINR,
-              netSettlementInINR: netSettlementInINR,
-              isNoCostEmi: true,
-            }
-          : {}),
-      },
-    });
+    const updatedOrder =
+      (await orderStore.updateOrder(order.id, {
+        orderStatus: "confirmed",
+        payment: {
+          ...order.payment,
+          status: "captured",
+          mode: paymentDetails.method?.toUpperCase() || order.payment.mode,
+          razorpayPaymentId,
+          razorpaySignature,
+          amountPaidInPaise: order.payment.amountRequiredInPaise,
+          capturedAt: new Date().toISOString(),
+          ...(discountInINR > 0
+            ? {
+                subventionDiscountInINR: discountInINR,
+                netSettlementInINR: netSettlementInINR,
+                isNoCostEmi: true,
+              }
+            : {}),
+        },
+      })) || order;
 
     // Auto-generate official Razorpay GST Tax Invoice
     try {
-      await createAndIssueRazorpayInvoice(order, razorpayPaymentId);
+      await createAndIssueRazorpayInvoice(updatedOrder, razorpayPaymentId);
     } catch (invErr) {
       console.warn("[Payment Verify] Razorpay invoice creation note:", invErr);
     }

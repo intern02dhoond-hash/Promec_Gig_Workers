@@ -5,6 +5,7 @@ import { orderStore, PromecOrder } from "@/lib/orderStore";
 import { profileStore } from "@/lib/profileStore";
 import { getLiveRazorpayOfferIds, getPromecPayLaterOfferIds } from "@/lib/razorpayOffers";
 import { getNextGigWorkerOrderId } from "@/lib/orderSequence";
+import { createRazorpayUpiIntent } from "@/lib/razorpayUpi";
 
 export async function POST(req: Request) {
   try {
@@ -21,6 +22,8 @@ export async function POST(req: Request) {
       colorName,
       quantity,
       paymentMethod = "FULL_ONLINE",
+      paymentChannel,
+      upiApp,
       emiDetails,
       idempotencyKey,
     } = body;
@@ -30,14 +33,36 @@ export async function POST(req: Request) {
       const existingOrder = await orderStore.getByIdempotencyKey(idempotencyKey);
       if (existingOrder && existingOrder.payment.razorpayOrderId) {
         const keyId = (process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "").trim();
+        let existingUpiIntentUrl = "";
+        if (
+          existingOrder.payment.method === "COD_ADVANCE" ||
+          paymentChannel === "UPI" ||
+          (!paymentChannel && existingOrder.payment.method === "FULL_ONLINE")
+        ) {
+          const upiRetry = await createRazorpayUpiIntent({
+            keyId,
+            razorpayOrderId: existingOrder.payment.razorpayOrderId,
+            amountInPaise: existingOrder.payment.amountRequiredInPaise,
+            email: existingOrder.customer?.email,
+            contact: existingOrder.customer?.phone,
+            upiApp,
+          });
+          if (upiRetry.success && upiRetry.intentUrl) {
+            existingUpiIntentUrl = upiRetry.intentUrl;
+          }
+        }
         return NextResponse.json({
+          id: existingOrder.payment.razorpayOrderId,
           orderId: existingOrder.id,
           razorpayOrderId: existingOrder.payment.razorpayOrderId,
+          razorpayPaymentId: existingOrder.payment.razorpayPaymentId || "",
           amount: existingOrder.payment.amountRequiredInPaise,
           currency: "INR",
           keyId,
           advanceAmount: Math.round(existingOrder.payment.amountRequiredInPaise / 100),
           codBalance: Math.round(existingOrder.payment.amountDueInPaise / 100),
+          upiIntentUrl: existingUpiIntentUrl,
+          qrCodeUrl: "",
         });
       }
     }
@@ -179,11 +204,34 @@ export async function POST(req: Request) {
       }
     }
 
-    // Generate instant, non-blocking standard merchant UPI Intent URL
-    const upiAmount = Math.round(pricing.amountRequiredInPaise / 100);
-    const upiIntentUrl = `upi://pay?pa=amectechnology.rzp@rxairtel&pn=AMECTECHNOLOGY&mc=5013&tr=${promecOrderId.replace(/[^a-zA-Z0-9_-]/g, "-")}&am=${upiAmount}&cu=INR&tn=AMEC%20Aquaforce%20${encodeURIComponent(promecOrderId)}`;
+    const resolvedMethodLower = String(paymentChannel || "").toUpperCase();
+    const shouldCreateUpiIntent =
+      resolvedMethod === "COD_ADVANCE" ||
+      resolvedMethodLower === "UPI" ||
+      (!resolvedMethodLower && resolvedMethod === "FULL_ONLINE");
+
+    let upiIntentUrl = "";
+    let rzpUpiPaymentId = "";
     const qrCodeUrl = "";
     const qrCodeId = "";
+
+    if (shouldCreateUpiIntent) {
+      const upiResult = await createRazorpayUpiIntent({
+        keyId: key_id,
+        razorpayOrderId: rzpOrder.id,
+        amountInPaise: pricing.amountRequiredInPaise,
+        email: customer.email,
+        contact: customer.phone,
+        upiApp,
+      });
+
+      if (upiResult.success && upiResult.intentUrl) {
+        upiIntentUrl = upiResult.intentUrl;
+        rzpUpiPaymentId = upiResult.paymentId || "";
+      } else {
+        console.warn("[Orders Create] Razorpay UPI intent generation warning:", upiResult.error);
+      }
+    }
 
     const resolvedCustomerType = "commercial";
     const cleanCustomerPhone = customer.phone.replace(/\D/g, "").slice(-10);
@@ -235,6 +283,7 @@ export async function POST(req: Request) {
         provider: "RAZORPAY",
         status: "pending",
         razorpayOrderId: rzpOrder.id,
+        ...(rzpUpiPaymentId ? { razorpayPaymentId: rzpUpiPaymentId } : {}),
         qrCodeId: qrCodeId || undefined,
         amountRequiredInPaise: pricing.amountRequiredInPaise,
         amountPaidInPaise: 0,
@@ -271,6 +320,7 @@ export async function POST(req: Request) {
       id: rzpOrder.id,
       orderId: promecOrderId,
       razorpayOrderId: rzpOrder.id,
+      razorpayPaymentId: rzpUpiPaymentId,
       amount: pricing.amountRequiredInPaise,
       currency: "INR",
       keyId: key_id,
